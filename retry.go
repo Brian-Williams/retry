@@ -23,7 +23,7 @@ func Do(f Func, opts ...Configurer) error {
 		opt.Configure(config)
 	}
 
-	_, err :=  doWithConfigurer(f, config)
+	_, err := doWithConfigurer(f, config)
 	return err
 }
 
@@ -48,14 +48,14 @@ func doWithConfigurer(f Func, config *config) (history error, err error) {
 	var errs error
 
 	for {
-		e := State{attempt: attempt, err: nil, errs: errs}
+		e := State{attempt: attempt, err: nil, hist: errs}
 		e.err = f()
-		e.errs = config.save(e)
+		e.hist = config.save(e)
 		if config.stop(e) {
-			return e.errs, e.err
+			return e.hist, e.err
 		}
 		time.Sleep(config.wait(e))
-		errs = e.errs
+		errs = e.hist
 		attempt++
 	}
 }
@@ -65,6 +65,10 @@ func doWithConfigurer(f Func, config *config) (history error, err error) {
 type Configurer interface {
 	Configure(config *config)
 }
+
+// RetryFunc is a simplified independent stop condition that only has access to the error
+// It is technically not required, but simplifies the API for the most common use case of attempt until
+type RetryFunc func(err error) bool
 
 // StopFunc is a function that stops on true and continues retrying on false
 type StopFunc func(e State) bool
@@ -102,7 +106,6 @@ func StopMaxAttempts(n uint) StopFunc {
 		}
 		return false
 	}
-
 }
 
 func StopIfError() StopFunc {
@@ -112,7 +115,6 @@ func StopIfError() StopFunc {
 		}
 		return false
 	}
-
 }
 
 func StopIfNoError() StopFunc {
@@ -204,8 +206,8 @@ func Save(errProperty errEnum) SaveFunc {
 	//	fallthrough
 	case AllStates:
 		return func(s State) error {
-			//s.errs = multierror.Append(s.errs, s.err)
-			return appendErr(s.errs, s.err)
+			//s.hist = multierror.Append(s.hist, s.err)
+			return appendErr(s.hist, s.err)
 		}
 	case LastState:
 		return func(e State) error {
@@ -218,17 +220,17 @@ func Save(errProperty errEnum) SaveFunc {
 	case AllErrors:
 		return func(e State) error {
 			if e.err != nil {
-				//e.errs = multierror.Append(e.errs, e.err)
-				return appendErr(e.errs, e.err)
+				//e.hist = multierror.Append(e.hist, e.err)
+				return appendErr(e.hist, e.err)
 			}
-			return e.errs
+			return e.hist
 		}
 	case LastError:
 		return func(e State) error {
 			if e.err != nil {
 				return e.err
 			}
-			return e.errs
+			return e.hist
 		}
 	}
 	panic(fmt.Sprintf("unrecognized enum for error configuration: '%+v'", errProperty))
@@ -263,8 +265,8 @@ type State struct {
 	attempt uint
 	// err is the current iterations error
 	err error
-	// errs
-	errs error
+	// hist
+	hist error
 }
 
 // COMBINATION UTILITIES

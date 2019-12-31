@@ -45,9 +45,9 @@ func ExampleDo_Get() {
 // WaitFixed does not adjust for total time, so this is only counting the delta time and not the total time
 // If this was written to calculate total time the time would likely round over the durationUnit
 func ExampleDoWithHistory_WaitFixed() {
-	durationUnit := time.Millisecond * 10
+	durationUnit := time.Millisecond * 20
 	pit := time.Now()
-	fmt.Printf("The first execution will be immediate than it will pause %s inbetween executions\n", durationUnit)
+	fmt.Printf("The first execution will be immediate than it will pause 10 * %s inbetween executions\n", durationUnit)
 
 	h, _ := retry.DoWithHistory(
 		func() error {
@@ -65,10 +65,10 @@ func ExampleDoWithHistory_WaitFixed() {
 		fmt.Println(h)
 	}
 	// Output:
-	// The first execution will be immediate than it will pause 10ms inbetween executions
+	// The first execution will be immediate than it will pause 10 * 20ms inbetween executions
 	// ran after ~0s
-	// ran after ~100ms
-	// ran after ~100ms
+	// ran after ~200ms
+	// ran after ~200ms
 	// Saved errors:
 	// #1: Always fails
 	// #2: Always fails
