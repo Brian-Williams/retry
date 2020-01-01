@@ -1,6 +1,6 @@
 retry:
   - ./**/*.go
-#  - !(./**/*_test.go)
+  - !**/*_test.go
 
 test:
   - ./**/*_test.go
