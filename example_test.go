@@ -17,7 +17,7 @@ import (
 )
 
 // ExampleDo_Get adds retrying to the ExampleGet in net/http/example_test.go
-func ExampleDo_Get() {
+func ExampleDo_get() {
 	errs := retry.Do(
 		func() error {
 			res, err := http.Get("http://www.google.com/robots.txt")
@@ -44,7 +44,7 @@ func ExampleDo_Get() {
 
 // WaitFixed does not adjust for total time, so this is only counting the delta time and not the total time
 // If this was written to calculate total time the time would likely round over the durationUnit
-func ExampleDoWithHistory_WaitFixed() {
+func ExampleDoWithHistory_waitFixed() {
 	durationUnit := time.Millisecond * 20
 	pit := time.Now()
 	fmt.Printf("The first execution will be immediate than it will pause 10 * %s inbetween executions\n", durationUnit)
@@ -75,7 +75,7 @@ func ExampleDoWithHistory_WaitFixed() {
 	// #3: Always fails
 }
 
-func ExampleDo_MaxAttempts() {
+func ExampleDo_maxAttempts() {
 	i := 1
 	errs := retry.Do(
 		func() error {
@@ -92,7 +92,7 @@ func ExampleDo_MaxAttempts() {
 	// 1
 }
 
-func ExampleDo_GoRoutine() {
+func ExampleDo_goRoutine() {
 	i := 1
 	var wg sync.WaitGroup
 	retry.Do(
@@ -113,7 +113,7 @@ func ExampleDo_GoRoutine() {
 	// 1
 }
 
-func ExampleDo_Cmd() {
+func ExampleDo_cmd() {
 	args := []string{"false", "false", "true"}
 
 	i := 0
@@ -135,7 +135,7 @@ func ExampleDo_Cmd() {
 	// true
 }
 
-func ExampleDo_CmdUntilFailure() {
+func ExampleDo_cmdUntilFailure() {
 	args := []string{"true", "true", "false"}
 
 	i := 0
