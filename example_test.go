@@ -33,7 +33,7 @@ func ExampleDo_Get() {
 			fmt.Printf("%s", robots)
 			return nil
 		},
-		retry.StopOr(retry.StopMaxAttempts(5)),
+		retry.StopMaxAttempts(5),
 	)
 	if errs != nil {
 		log.Fatal(errs)
