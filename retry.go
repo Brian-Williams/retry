@@ -9,13 +9,13 @@ import (
 // Func is a function that can be retried
 type Func func() error
 
-// Do is a general retry tool. It will retry forever, but can be modified to your needs.
+// Do is a general retry function.
 //
 // Do is the entry point for retrying. It will always run a function at least once.
 //
-// If you want to combine multiple configurable options use one of the combination helpers like "StopOr".
-// If you pass in multiple configurations for the same configurable option the *last* configuration will be the one that
-// takes effect. There is not a valid use case for doing that and may panic in the future.
+// If combining multiple configurable options use one of the combination helpers like "StopOr".
+// If multiple configurations are passed in for the same configurable option the *last* configuration will be the one
+// that takes effect.
 func Do(f Func, opts ...Configurer) error {
 	config := Config()
 
@@ -38,12 +38,6 @@ func DoWithHistory(f Func, opts ...Configurer) (history, err error) {
 }
 
 func doWithConfigurer(f Func, config *config) (history error, err error) {
-	// TODO: is it valid that we should give a stop option for the first run
-	// check if we should start any runs
-	//if config.stop(State{attempt: 0, err: nil}) {
-	//	return config.error
-	//}
-
 	var attempt uint = 1
 	var errs error
 
@@ -114,11 +108,20 @@ func retryIfErrorFunc(err error) bool {
 	return false
 }
 
-func RetryIfError() RetryFunc {
+func IfError() RetryFunc {
 	return retryIfErrorFunc
 }
 
-func RetryAlways() RetryFunc {
+func IfNoError() RetryFunc {
+	return func(err error) bool {
+		if err != nil {
+			return false
+		}
+		return true
+	}
+}
+
+func Always() RetryFunc {
 	return func(error) bool{
 		return true
 	}
@@ -212,7 +215,7 @@ const (
 	LastState
 	NoStates
 
-	// AllErrors should only be used when you want to do simple comparisons against the returned error slice.
+	// AllErrors should only be used when doing simple comparisons against the returned error slice.
 	// It loses the connection between the retry number and the state, so in general AllStates is a better option.
 	AllErrors
 	LastError
@@ -227,17 +230,15 @@ func noStatesFunc(_ State) error {
 	return nil
 }
 
-// TODO: it's slightly strange to have the error configurer use an enum when none of the other Configurerers do, this
-// might be okay simply to stop users from configuring errors more than once.
-// It's possible this is just a naming problem though and the SaveFunc should have something more meaninfully named verb
-// like 'save'. 'SaveAllStates' makes a lot more sense than 'ErrorAllStates' as an input
+// Save decides what parts of the error history to save and return to the user.
+// Save is intended to configure `DoWithHistory`, however can have uses with `Do` if one of the Configure functions
+// wants to inspect previous executions.
 func Save(errProperty errEnum) SaveFunc {
 	switch errProperty {
 	//default:
 	//	fallthrough
 	case AllStates:
 		return func(s State) error {
-			//s.hist = multierror.Append(s.hist, s.err)
 			return appendErr(s.hist, s.err)
 		}
 	case LastState:
@@ -249,7 +250,6 @@ func Save(errProperty errEnum) SaveFunc {
 	case AllErrors:
 		return func(e State) error {
 			if e.err != nil {
-				//e.hist = multierror.Append(e.hist, e.err)
 				return appendErr(e.hist, e.err)
 			}
 			return e.hist

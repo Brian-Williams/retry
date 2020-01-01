@@ -42,10 +42,6 @@ func ExampleDo_Get() {
 	// User-agent: *
 }
 
-func ExampleDo() {
-
-}
-
 // WaitFixed does not adjust for total time, so this is only counting the delta time and not the total time
 // If this was written to calculate total time the time would likely round over the durationUnit
 func ExampleDoWithHistory_WaitFixed() {
@@ -153,7 +149,7 @@ func ExampleDo_CmdUntilFailure() {
 			i++
 			return err
 		},
-		retry.RetryAlways(),
+		retry.Always(),
 		retry.StopOr(retry.StopIfError(), retry.StopMaxAttempts(5)),
 	)
 	// Output:
