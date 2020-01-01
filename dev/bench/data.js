@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1577836805869,
+  "lastUpdate": 1577845274159,
   "repoUrl": "https://github.com/Brian-Williams/retry",
   "entries": {
     "Go Benchmark": [
@@ -192,6 +192,72 @@ window.BENCHMARK_DATA = {
             "value": 230404,
             "unit": "ns/op",
             "extra": "4986 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "briancmwilliams@gmail.com",
+            "name": "Brian Williams",
+            "username": "Brian-Williams"
+          },
+          "committer": {
+            "email": "briancmwilliams@gmail.com",
+            "name": "Brian Williams",
+            "username": "Brian-Williams"
+          },
+          "distinct": true,
+          "id": "89e584612e2da607f077cba84282d6ab46021a31",
+          "message": "Add labeler.yml",
+          "timestamp": "2019-12-31T21:20:14-05:00",
+          "tree_id": "c0ffeef928de833453a74c347a37b7a596f172a2",
+          "url": "https://github.com/Brian-Williams/retry/commit/89e584612e2da607f077cba84282d6ab46021a31"
+        },
+        "date": 1577845273775,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkDo2",
+            "value": 100,
+            "unit": "ns/op",
+            "extra": "12347365 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo10",
+            "value": 293,
+            "unit": "ns/op",
+            "extra": "4167564 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer10",
+            "value": 268,
+            "unit": "ns/op",
+            "extra": "4318024 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo100",
+            "value": 2434,
+            "unit": "ns/op",
+            "extra": "497739 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer100",
+            "value": 2298,
+            "unit": "ns/op",
+            "extra": "534879 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo10000",
+            "value": 239236,
+            "unit": "ns/op",
+            "extra": "4852 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer10000",
+            "value": 221853,
+            "unit": "ns/op",
+            "extra": "5434 times\n2 procs"
           }
         ]
       }
