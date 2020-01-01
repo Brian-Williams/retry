@@ -1,9 +1,9 @@
 retry:
-  - **/*.go
-  - !**/*_test.go
+  - ./**/*.go
+  - !./**/*_test.go
 
 test:
-  - **/*_test.go
+  - ./**/*_test.go
 
 documentation:
   - doc.go
