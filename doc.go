@@ -15,7 +15,7 @@
 // To the more verbose:
 // 	`retry.Do(func() error{ return nil }, retry.StopOr(retry.StopIfNoError(), retry.StopMaxAttempts(n))`)
 // Both of the above work with the actual API, but the second would be required if there wasn't a default retry
-// condition. Because a dummmy function that always returns nil is passed in both of the above will always run once. IF
+// condition. Because an empty function that always returns nil is passed in both of the above will always run once. If
 // a real function was run that could return a non-nil error it would run at least once, up to n times.
 //
 // If you want to instead retry until an error you may pass in `retry.IfNoError()`:
