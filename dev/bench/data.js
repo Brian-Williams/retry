@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1576614081272,
+  "lastUpdate": 1577836805869,
   "repoUrl": "https://github.com/Brian-Williams/retry",
   "entries": {
     "Go Benchmark": [
@@ -126,6 +126,72 @@ window.BENCHMARK_DATA = {
             "value": 231834,
             "unit": "ns/op",
             "extra": "4455 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "briancmwilliams@gmail.com",
+            "name": "Brian Williams",
+            "username": "Brian-Williams"
+          },
+          "committer": {
+            "email": "briancmwilliams@gmail.com",
+            "name": "Brian Williams",
+            "username": "Brian-Williams"
+          },
+          "distinct": true,
+          "id": "7aa18dcb92966801fb9c366c0db0c493dfe9affb",
+          "message": "Loosen test",
+          "timestamp": "2019-12-31T18:58:33-05:00",
+          "tree_id": "514b227335996fc949711b0d1f4298955ec2c80c",
+          "url": "https://github.com/Brian-Williams/retry/commit/7aa18dcb92966801fb9c366c0db0c493dfe9affb"
+        },
+        "date": 1577836805406,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkDo2",
+            "value": 100,
+            "unit": "ns/op",
+            "extra": "12045547 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo10",
+            "value": 299,
+            "unit": "ns/op",
+            "extra": "4046353 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer10",
+            "value": 279,
+            "unit": "ns/op",
+            "extra": "4407902 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo100",
+            "value": 2505,
+            "unit": "ns/op",
+            "extra": "496352 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer100",
+            "value": 2334,
+            "unit": "ns/op",
+            "extra": "535476 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo10000",
+            "value": 243832,
+            "unit": "ns/op",
+            "extra": "5020 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer10000",
+            "value": 230404,
+            "unit": "ns/op",
+            "extra": "4986 times\n2 procs"
           }
         ]
       }
