@@ -51,6 +51,9 @@ func doWithConfigurer(f Func, config *config) (history error, err error) {
 		e := State{attempt: attempt, err: nil, hist: errs}
 		e.err = f()
 		e.hist = config.save(e)
+		if !config.retry(e.err) {
+			return e.hist, e.err
+		}
 		if config.stop(e) {
 			return e.hist, e.err
 		}
@@ -67,7 +70,7 @@ type Configurer interface {
 }
 
 // RetryFunc is a simplified independent stop condition that only has access to the error
-// It is technically not required, but simplifies the API for the most common use case of attempt until
+// It is technically not required, but simplifies the API for the most common use case of attempt until no error/success
 type RetryFunc func(err error) bool
 
 // StopFunc is a function that stops on true and continues retrying on false
@@ -83,6 +86,11 @@ type WaitFunc func(e State) time.Duration
 type SaveFunc func(e State) error
 
 // Configure satisfies the Configurer interface
+func (f RetryFunc) Configure(config *config) {
+	config.retry = f
+}
+
+// Configure satisfies the Configurer interface
 func (f StopFunc) Configure(config *config) {
 	config.stop = f
 }
@@ -95,6 +103,25 @@ func (f WaitFunc) Configure(config *config) {
 // Configure satisfies the Configurer interface
 func (f SaveFunc) Configure(config *config) {
 	config.save = f
+}
+
+// Retry options
+
+func retryIfErrorFunc(err error) bool {
+	if err != nil {
+		return true
+	}
+	return false
+}
+
+func RetryIfError() RetryFunc {
+	return retryIfErrorFunc
+}
+
+func RetryAlways() RetryFunc {
+	return func(error) bool{
+		return true
+	}
 }
 
 // Stop options
@@ -196,6 +223,10 @@ const (
 	testErrors errEnum = 999
 )
 
+func noStatesFunc(_ State) error {
+	return nil
+}
+
 // TODO: it's slightly strange to have the error configurer use an enum when none of the other Configurerers do, this
 // might be okay simply to stop users from configuring errors more than once.
 // It's possible this is just a naming problem though and the SaveFunc should have something more meaninfully named verb
@@ -214,9 +245,7 @@ func Save(errProperty errEnum) SaveFunc {
 			return e.err
 		}
 	case NoStates:
-		return func(_ State) error {
-			return nil
-		}
+		return noStatesFunc
 	case AllErrors:
 		return func(e State) error {
 			if e.err != nil {
@@ -237,24 +266,25 @@ func Save(errProperty errEnum) SaveFunc {
 }
 
 func Config() *config {
-	c := &config{
+	return &config{
+		retry: retryIfErrorFunc,
 		stop: func(_ State) bool {
 			return false
 		},
 		wait: func(s State) time.Duration {
 			return 0
 		},
+		save: noStatesFunc,
 	}
-	Save(NoStates).Configure(c)
-	return c
 }
 
 // config configures which functions to use for retrying logic
 type config struct {
-	_    struct{}
-	stop StopFunc
-	wait WaitFunc
-	save SaveFunc
+	_     struct{}
+	retry RetryFunc
+	stop  StopFunc
+	wait  WaitFunc
+	save  SaveFunc
 }
 
 // State provides the execution info for a single retry attempt

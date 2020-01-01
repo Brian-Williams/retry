@@ -60,6 +60,7 @@ func TestSave(t *testing.T) {
 						i++
 						return r
 					},
+					RetryAlways(),
 					Save(test.enum),
 					StopMaxAttempts(uint(len(absOutput))),
 				)
@@ -123,6 +124,7 @@ var maxAttemptTable = []struct {
 func maxAttemptsStr(opts ...Configurer) string {
 	i := 1
 	out := ""
+	opts = append(opts, RetryAlways())
 	Do(
 		func() error {
 			out = fmt.Sprintf("%s%s", out, strconv.Itoa(i))

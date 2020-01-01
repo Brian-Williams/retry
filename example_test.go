@@ -33,13 +33,17 @@ func ExampleDo_Get() {
 			fmt.Printf("%s", robots)
 			return nil
 		},
-		retry.StopOr(retry.StopMaxAttempts(5), retry.StopIfNoError()),
+		retry.StopOr(retry.StopMaxAttempts(5)),
 	)
 	if errs != nil {
 		log.Fatal(errs)
 	}
 	// Output:
 	// User-agent: *
+}
+
+func ExampleDo() {
+
 }
 
 // WaitFixed does not adjust for total time, so this is only counting the delta time and not the total time
@@ -86,12 +90,10 @@ func ExampleDo_MaxAttempts() {
 		retry.StopMaxAttempts(3),
 	)
 	if errs != nil {
-		//log.Fatal(errs)
+		log.Fatal(errs)
 	}
 	// Output:
 	// 1
-	// 2
-	// 3
 }
 
 func ExampleDo_GoRoutine() {
@@ -113,11 +115,31 @@ func ExampleDo_GoRoutine() {
 	wg.Wait()
 	// Output:
 	// 1
-	// 2
-	// 3
 }
 
 func ExampleDo_Cmd() {
+	args := []string{"false", "false", "true"}
+
+	i := 0
+	retry.Do(
+		func() error {
+			c := exec.Command(args[i])
+			var out bytes.Buffer
+			c.Stdout = &out
+			err := c.Run()
+			fmt.Println(args[i])
+			i++
+			return err
+		},
+		retry.StopMaxAttempts(5),
+	)
+	// Output:
+	// false
+	// false
+	// true
+}
+
+func ExampleDo_CmdUntilFailure() {
 	args := []string{"true", "true", "false"}
 
 	i := 0
@@ -131,6 +153,7 @@ func ExampleDo_Cmd() {
 			i++
 			return err
 		},
+		retry.RetryAlways(),
 		retry.StopOr(retry.StopIfError(), retry.StopMaxAttempts(5)),
 	)
 	// Output:
