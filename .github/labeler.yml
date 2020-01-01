@@ -1,0 +1,10 @@
+retry:
+  - **/*.go
+  - !**/*_test.go
+
+test:
+  - **/*_test.go
+
+documentation:
+  - doc.go
+  - README.md
