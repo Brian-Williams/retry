@@ -161,3 +161,33 @@ func ExampleDo_cmdUntilFailure() {
 	// true
 	// false
 }
+
+// This custom StopFunc shows how we can stop if an error occurs, but there is no history saved an the following
+// execution would bury the current error.
+//
+// Without this StopFunc the error would've caused an additional retry, however since we didn't use
+// `retry.Save(AllStates)` and no History is being saved it exits
+func ExampleStopFunc_custom(){
+	i := 0
+	err := retry.Do(
+		func() error {
+			i++
+			fmt.Println(i)
+			return fmt.Errorf("failed on attempt %d", i)
+		},
+		retry.StopFunc(
+			func(s retry.State) bool {
+				if s.Hist != nil {
+					return false
+				}
+				fmt.Println("will not continue because no history is being saved")
+				return true
+			},
+		),
+	)
+	fmt.Println(err)
+	// Output:
+	// 1
+	// will not continue because no history is being saved
+	// failed on attempt 1
+}

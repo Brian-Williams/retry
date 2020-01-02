@@ -42,17 +42,17 @@ func doWithConfigurer(f Func, config *config) (history error, err error) {
 	var errs error
 
 	for {
-		e := State{attempt: attempt, err: nil, hist: errs}
-		e.err = f()
-		e.hist = config.save(e)
-		if !config.retry(e.err) {
-			return e.hist, e.err
+		e := State{Attempt: attempt, Err: nil, Hist: errs}
+		e.Err = f()
+		e.Hist = config.save(e)
+		if !config.retry(e.Err) {
+			return e.Hist, e.Err
 		}
 		if config.stop(e) {
-			return e.hist, e.err
+			return e.Hist, e.Err
 		}
 		time.Sleep(config.wait(e))
-		errs = e.hist
+		errs = e.Hist
 		attempt++
 	}
 }
@@ -122,7 +122,7 @@ func IfNoError() RetryFunc {
 }
 
 func Always() RetryFunc {
-	return func(error) bool{
+	return func(error) bool {
 		return true
 	}
 }
@@ -131,7 +131,7 @@ func Always() RetryFunc {
 
 func StopMaxAttempts(n uint) StopFunc {
 	return func(s State) bool {
-		if s.attempt >= n {
+		if s.Attempt >= n {
 			return true
 		}
 		return false
@@ -140,7 +140,7 @@ func StopMaxAttempts(n uint) StopFunc {
 
 func StopIfError() StopFunc {
 	return func(s State) bool {
-		if s.err != nil {
+		if s.Err != nil {
 			return true
 		}
 		return false
@@ -149,7 +149,7 @@ func StopIfError() StopFunc {
 
 func StopIfNoError() StopFunc {
 	return func(s State) bool {
-		if s.err != nil {
+		if s.Err != nil {
 			return false
 		}
 		return true
@@ -159,7 +159,7 @@ func StopIfNoError() StopFunc {
 // stopOnError compares the most recent error to a desired error and stops only when those errors match
 func stopOnError(err error) StopFunc {
 	return func(s State) bool {
-		if s.err == err {
+		if s.Err == err {
 			return true
 		}
 		return false
@@ -231,47 +231,51 @@ func noStatesFunc(_ State) error {
 }
 
 // Save decides what parts of the error history to save and return to the user.
-// Save is intended to configure `DoWithHistory`, however can have uses with `Do` if one of the Configure functions
-// wants to inspect previous executions.
+//
+// Save can be used with `DoWithHistory`.
+// Save can also be used if any Configure function wants to inspect previous executions
 func Save(errProperty errEnum) SaveFunc {
 	switch errProperty {
 	//default:
 	//	fallthrough
 	case AllStates:
 		return func(s State) error {
-			return appendErr(s.hist, s.err)
+			return appendErr(s.Hist, s.Err)
 		}
 	case LastState:
 		return func(e State) error {
-			return e.err
+			return e.Err
 		}
 	case NoStates:
 		return noStatesFunc
 	case AllErrors:
 		return func(e State) error {
-			if e.err != nil {
-				return appendErr(e.hist, e.err)
+			if e.Err != nil {
+				return appendErr(e.Hist, e.Err)
 			}
-			return e.hist
+			return e.Hist
 		}
 	case LastError:
 		return func(e State) error {
-			if e.err != nil {
-				return e.err
+			if e.Err != nil {
+				return e.Err
 			}
-			return e.hist
+			return e.Hist
 		}
 	}
 	panic(fmt.Sprintf("unrecognized enum for error configuration: '%+v'", errProperty))
 }
 
+// Config provides a config that retries on non-nil errors
+//
+// The returned config has no stop condition, 0 wait time, and will not save any history.
 func Config() *config {
 	return &config{
 		retry: retryIfErrorFunc,
 		stop: func(_ State) bool {
 			return false
 		},
-		wait: func(s State) time.Duration {
+		wait: func(_ State) time.Duration {
 			return 0
 		},
 		save: noStatesFunc,
@@ -290,17 +294,17 @@ type config struct {
 // State provides the execution info for a single retry attempt
 type State struct {
 	_ struct{}
-	// attempt is the current number of attempts
-	// attempt is effectively 1 indexed as it will only be 0 before the `Func` to be retried is called
-	attempt uint
-	// err is the current iterations error
-	err error
-	// hist
-	hist error
+	// Attempt is the current number of attempts
+	Attempt uint
+	// Err is the current iterations error
+	Err error
+	// Hist is the History of the execution
+	Hist error
 }
 
 // COMBINATION UTILITIES
 
+// StopOr takes two or more StopFunc and returns a StopFunc that stops if any is true
 func StopOr(fs ...StopFunc) StopFunc {
 	return func(s State) bool {
 		var b bool
@@ -311,6 +315,7 @@ func StopOr(fs ...StopFunc) StopFunc {
 	}
 }
 
+// StopAnd takes two or more StopFunc and returns a StopFunc that stops if all are true
 func StopAnd(fs ...StopFunc) StopFunc {
 	return func(s State) bool {
 		var b = true

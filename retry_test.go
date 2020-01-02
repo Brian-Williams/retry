@@ -99,14 +99,14 @@ func TestErrors_Error(t *testing.T) {
 func TestConfig(t *testing.T) {
 	c := Config()
 	nilState := State{}
-	errState := State{err: errors.New("dogs are pretty great")}
+	errState := State{Err: errors.New("dogs are pretty great")}
 	states := []State{nilState, errState}
 	for _, s := range states {
 		if c.stop(s) != false {
-			t.Errorf("received unexpected stop condition on config with err: %s", s.err)
+			t.Errorf("received unexpected stop condition on config with err: %s", s.Err)
 		}
 		if c.wait(s) != 0 {
-			t.Errorf("received non-zero wait time for config with err: %s", s.err)
+			t.Errorf("received non-zero wait time for config with err: %s", s.Err)
 		}
 	}
 }
