@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1577942805635,
+  "lastUpdate": 1577942874499,
   "repoUrl": "https://github.com/Brian-Williams/retry",
   "entries": {
     "Go Benchmark": [
@@ -1074,6 +1074,90 @@ window.BENCHMARK_DATA = {
             "value": 55.8,
             "unit": "ns/op",
             "extra": "20686185 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Brian-Williams@users.noreply.github.com",
+            "name": "Brian",
+            "username": "Brian-Williams"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dd5893be418bd7cd7a679d533fef8ff066a1748a",
+          "message": "Rename stale to stale.yml",
+          "timestamp": "2020-01-02T00:27:12-05:00",
+          "tree_id": "51fde39cb99ae2e70002675276a9f22cf42cfe1c",
+          "url": "https://github.com/Brian-Williams/retry/commit/dd5893be418bd7cd7a679d533fef8ff066a1748a"
+        },
+        "date": 1577942873968,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkDo1",
+            "value": 72,
+            "unit": "ns/op",
+            "extra": "16418756 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer1",
+            "value": 62,
+            "unit": "ns/op",
+            "extra": "21278384 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo2",
+            "value": 69,
+            "unit": "ns/op",
+            "extra": "17440756 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer2",
+            "value": 60.5,
+            "unit": "ns/op",
+            "extra": "17778262 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo10",
+            "value": 69.2,
+            "unit": "ns/op",
+            "extra": "17042389 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer10",
+            "value": 59.6,
+            "unit": "ns/op",
+            "extra": "20764813 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo100",
+            "value": 71.3,
+            "unit": "ns/op",
+            "extra": "17556060 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer100",
+            "value": 59.5,
+            "unit": "ns/op",
+            "extra": "19636022 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo10000",
+            "value": 68.9,
+            "unit": "ns/op",
+            "extra": "17402029 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer10000",
+            "value": 59.8,
+            "unit": "ns/op",
+            "extra": "20505607 times\n2 procs"
           }
         ]
       }
