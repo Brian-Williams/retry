@@ -18,7 +18,7 @@ import (
 
 // ExampleDo_Get adds retrying to the ExampleGet in net/http/example_test.go
 func ExampleDo_get() {
-	errs := retry.Do(
+	err := retry.Do(
 		func() error {
 			res, err := http.Get("http://www.google.com/robots.txt")
 			if err != nil {
@@ -35,8 +35,8 @@ func ExampleDo_get() {
 		},
 		retry.StopMaxAttempts(5),
 	)
-	if errs != nil {
-		log.Fatal(errs)
+	if err != nil {
+		log.Fatal(err)
 	}
 	// Output:
 	// User-agent: *
@@ -77,19 +77,23 @@ func ExampleDoWithHistory_waitFixed() {
 
 func ExampleDo_maxAttempts() {
 	i := 1
-	errs := retry.Do(
+	err := retry.Do(
 		func() error {
 			fmt.Println(i)
 			i++
-			return nil
+			return fmt.Errorf("failed on attempt %d", i-1)
 		},
 		retry.StopMaxAttempts(3),
 	)
-	if errs != nil {
-		log.Fatal(errs)
+	if err != nil {
+		// handle the error
+		fmt.Println(err)
 	}
 	// Output:
 	// 1
+	// 2
+	// 3
+	// failed on attempt 3
 }
 
 func ExampleDo_goRoutine() {
