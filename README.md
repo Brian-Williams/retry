@@ -47,7 +47,7 @@ Godoc has more [examples].
 ### Contributing
 I'm happy to accept PRs for your use case.
 
-If you are making a large change or extension consider opening an issue
+If we are making a large change or extension consider opening an issue
 first, so that we can discuss the best way to add your change!
 
 ### Benchmarks
