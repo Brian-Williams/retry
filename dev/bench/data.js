@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1577905301387,
+  "lastUpdate": 1577937247747,
   "repoUrl": "https://github.com/Brian-Williams/retry",
   "entries": {
     "Go Benchmark": [
@@ -738,6 +738,90 @@ window.BENCHMARK_DATA = {
             "value": 54.5,
             "unit": "ns/op",
             "extra": "21640720 times\n2 procs"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "briancmwilliams@gmail.com",
+            "name": "Brian Williams",
+            "username": "Brian-Williams"
+          },
+          "committer": {
+            "email": "briancmwilliams@gmail.com",
+            "name": "Brian Williams",
+            "username": "Brian-Williams"
+          },
+          "distinct": true,
+          "id": "260fcb9536a53d4e51018f56f2032aeb5854dc83",
+          "message": "Update examples & README.md",
+          "timestamp": "2020-01-01T22:53:05-05:00",
+          "tree_id": "13ec0fed20fda97a7a26f9c8059ea1cd64bd1101",
+          "url": "https://github.com/Brian-Williams/retry/commit/260fcb9536a53d4e51018f56f2032aeb5854dc83"
+        },
+        "date": 1577937247295,
+        "tool": "go",
+        "benches": [
+          {
+            "name": "BenchmarkDo1",
+            "value": 71.3,
+            "unit": "ns/op",
+            "extra": "14794165 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer1",
+            "value": 60.4,
+            "unit": "ns/op",
+            "extra": "16957399 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo2",
+            "value": 71.9,
+            "unit": "ns/op",
+            "extra": "17125250 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer2",
+            "value": 62.2,
+            "unit": "ns/op",
+            "extra": "19281794 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo10",
+            "value": 69.9,
+            "unit": "ns/op",
+            "extra": "17350450 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer10",
+            "value": 59,
+            "unit": "ns/op",
+            "extra": "19015843 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo100",
+            "value": 69.7,
+            "unit": "ns/op",
+            "extra": "17471451 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer100",
+            "value": 59.7,
+            "unit": "ns/op",
+            "extra": "18265737 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDo10000",
+            "value": 71.7,
+            "unit": "ns/op",
+            "extra": "16369966 times\n2 procs"
+          },
+          {
+            "name": "BenchmarkDoWithConfigurer10000",
+            "value": 60.8,
+            "unit": "ns/op",
+            "extra": "20062870 times\n2 procs"
           }
         ]
       }
