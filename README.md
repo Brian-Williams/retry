@@ -7,15 +7,6 @@ Retry is a flexible retrying library for all your repeated needs.
 As usual with retry examples in go, here is how to implement a maximum of 5
 retries to the `ExampleGet` test from `net/http`.
 ```go
-package main
-import (
-    "bufio"
-    "fmt"
-    "io/ioutil"
-    "log"
-    "net/http"
-    "github.com/Brian-Williams/retry"
-)
 // ExampleDo_Get adds retrying to the ExampleGet in net/http/example_test.go
 func ExampleDo_Get() {
 	err := retry.Do(
