@@ -1,0 +1,19 @@
+name: "Close stale issues"
+on:
+  schedule:
+  - cron: "0 0 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/stale@v1
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        days-before-stale: 60
+        # don't actually close anything, just mark stale for visibility
+        days-before-close: 36520
+        stale-issue-message: 'This issue is stale because it has been open 30 days with no activity. Remove stale label or comment or this will be closed in 7 days'
+        stale-issue-label: 'stale'
+        # twinkies never go stale!
+        exempt-issue-label: 'twinkie'
