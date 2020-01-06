@@ -28,7 +28,7 @@ jobs:
       run: go build -v .
 
   benchmark:
-    name: Run Go benchmark example
+    name: Run Go benchmark
     runs-on: ubuntu-latest
     steps:
 
@@ -51,7 +51,10 @@ jobs:
         # github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
         auto-push: true
         # Show alert with commit comment on detecting possible performance regression
-        alert-threshold: '200%'
+        alert-threshold: '160%'
         comment-on-alert: true
+        alert-comment-cc-users: : '@Brian-Williams'
         fail-on-alert: true
-        alert-comment-cc-users: '@Brian-Williams'
+    - name: Push benchmark result
+        run: git push ...
+        if: github.event_name != 'pull_request'
