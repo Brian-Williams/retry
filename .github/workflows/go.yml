@@ -28,7 +28,7 @@ jobs:
       run: go build -v .
 
   benchmark:
-    name: Run Go benchmark example
+    name: Run Go benchmark
     runs-on: ubuntu-latest
     steps:
 
@@ -39,7 +39,12 @@ jobs:
       id: go
     - name: Run benchmark
       run: go test -bench . | tee output.txt
-
+      # Download previous benchmark result from cache (if exists)
+    - name: Download previous benchmark data
+      uses: actions/cache@v1
+      with:
+        path: ./cache
+        key: ${{ runner.os }}-benchmark
     - name: Store benchmark result
       uses: rhysd/github-action-benchmark@v1
       with:
@@ -49,9 +54,12 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
         # github-token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-        auto-push: true
+        external-data-json-path: ./cache/benchmark-data.json
         # Show alert with commit comment on detecting possible performance regression
-        alert-threshold: '200%'
+        alert-threshold: '160%'
         comment-on-alert: true
+        alert-comment-cc-users: : '@Brian-Williams'
         fail-on-alert: true
-        alert-comment-cc-users: '@Brian-Williams'
+    - name: Push benchmark result
+        run: git push ...
+        if: github.event_name != 'pull_request'
