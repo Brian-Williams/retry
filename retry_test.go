@@ -157,10 +157,10 @@ func TestOr(t *testing.T) {
 func TestAnd(t *testing.T) {
 	for _, test := range maxAttemptTable {
 		t.Run(fmt.Sprintf("running StopAnd tests for %d attempts", test.attempts), func(t *testing.T) {
-			var delta uint = 0
-			//if test.attempts != 0 {
-			//	delta = 1
-			//}
+			var delta uint = 1
+			if test.attempts <= 0 {
+				delta = 0
+			}
 			out := maxAttemptsStr(StopAnd(StopMaxAttempts(test.attempts), StopMaxAttempts(test.attempts-delta)))
 			if out != test.output {
 				t.Errorf("expected '%s' got '%s'", test.output, out)
