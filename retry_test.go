@@ -113,12 +113,12 @@ func TestConfig(t *testing.T) {
 
 var maxAttemptTable = []struct {
 	attempts uint
-	output   string
+	output   uint
 }{
-	{0, "1"},
-	{1, "1"},
-	{2, "12"},
-	{5, "12345"},
+	{0, 1},
+	{1, 1},
+	{2, 12},
+	{5, 12345},
 }
 
 func maxAttemptsStr(opts ...Configurer) string {
@@ -136,9 +136,39 @@ func maxAttemptsStr(opts ...Configurer) string {
 	return out
 }
 
+func maxAttemptsStr(opts ...Configurer) string {
+	i := 1
+	out := ""
+	opts = append(opts, Always())
+	Do(
+		func() error {
+			out = fmt.Sprintf("%s%s", out, strconv.Itoa(i))
+			i++
+			return nil
+		},
+		opts...,
+	)
+	return out
+}
+
+func maxAttempts(opts ...Configurer) int {
+	i := 1
+	out := i
+	opts = append(opts, Always())
+	Do(
+		func() error {
+			out = i
+			i++
+			return nil
+		},
+		opts...,
+	)
+	return out
+}
+
 func TestMaxAttempts(t *testing.T) {
 	for _, test := range maxAttemptTable {
-		out := maxAttemptsStr(StopMaxAttempts(test.attempts))
+		out := maxAttempts(StopMaxAttempts(test.attempts))
 		if out != test.output {
 			t.Errorf("expected '%s' got '%s'", test.output, out)
 		}
@@ -147,7 +177,7 @@ func TestMaxAttempts(t *testing.T) {
 
 func TestOr(t *testing.T) {
 	for _, test := range maxAttemptTable {
-		out := maxAttemptsStr(StopOr(StopMaxAttempts(test.attempts+5), StopMaxAttempts(test.attempts)))
+		out := maxAttempts(StopOr(StopMaxAttempts(test.attempts+5), StopMaxAttempts(test.attempts)))
 		if out != test.output {
 			t.Errorf("expected '%s' got '%s'", test.output, out)
 		}
@@ -157,11 +187,11 @@ func TestOr(t *testing.T) {
 func TestAnd(t *testing.T) {
 	for _, test := range maxAttemptTable {
 		t.Run(fmt.Sprintf("running StopAnd tests for %d attempts", test.attempts), func(t *testing.T) {
-			var delta uint = 0
+			var delta uint = 1
 			//if test.attempts != 0 {
 			//	delta = 1
 			//}
-			out := maxAttemptsStr(StopAnd(StopMaxAttempts(test.attempts), StopMaxAttempts(test.attempts-delta)))
+			out := maxAttempts(StopAnd(StopMaxAttempts(test.attempts), StopMaxAttempts(test.attempts-delta)))
 			if out != test.output {
 				t.Errorf("expected '%s' got '%s'", test.output, out)
 			}
