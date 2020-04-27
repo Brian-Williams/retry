@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"errors"
 )
 
 // Func is a function that can be retried
@@ -324,4 +325,22 @@ func StopAnd(fs ...StopFunc) StopFunc {
 		}
 		return b
 	}
+}
+
+// WRAPPING UTILITIES
+
+
+// UnwrappedError
+var NotWrappedError = errors.New("error missing Unwrap method")
+
+// Unwrap is like the standard libraries Unwrap function except it returns a `NotWrappedError` in the case of being
+// handed an error without an Unwrap method instead of returning nil
+func Unwrap(err error) error {
+	u, ok := err.(interface {
+		Unwrap() error
+	})
+	if !ok {
+		return NotWrappedError
+	}
+	return u.Unwrap()
 }
