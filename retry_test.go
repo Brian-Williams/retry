@@ -12,7 +12,7 @@ import (
 func TestAppendErr(t *testing.T) {
 	var e error
 	e = appendErr(e, errors.New("error1"))
-	if e.Error() != "Saved errors:\n#1: error1" {
+	if e.Error() != "saved errors:\n#1: error1" {
 		t.Log(e.Error())
 		t.Error("actual and expected err didn't match")
 	}
@@ -30,10 +30,17 @@ func TestSave(t *testing.T) {
 		Save(testErrors)
 	})
 
-	absOutput := []error{errors.New("error 1; return 1"), nil, errors.New("error 2; return 3"), nil}
+	absOutput := []error{
+		Error{1, errors.New("error 1; return 1")},
+		Error{2, nil},
+		Error{3, errors.New("error 2; return 3")},
+		Error{ 4, nil},
+	}
+	var absOutputHist History = absOutput
+	fmt.Println(absOutputHist)
 	var allErrorsOutput []error
 	for _, err := range absOutput {
-		if err != nil {
+		if err.(Error).Unwrap() != nil {
 			allErrorsOutput = append(allErrorsOutput, err)
 		}
 	}
@@ -56,7 +63,7 @@ func TestSave(t *testing.T) {
 				i := 0
 				actual, _ := DoWithHistory(
 					func() error {
-						r := absOutput[i]
+						r := absOutput[i].(Error).Unwrap()
 						i++
 						return r
 					},

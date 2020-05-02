@@ -177,6 +177,17 @@ func WaitFixed(delay time.Duration) WaitFunc {
 
 // Error options
 
+type Error struct {
+	Attempt  uint
+	Err      error
+}
+
+func (e Error) Unwrap() error { return e.Err }
+
+func (e Error) Error() string {
+	return fmt.Sprintf("attempt %d: %v", e.Attempt, e.Err)
+}
+
 type History []error
 
 // Error method return string representation of Error
@@ -184,14 +195,14 @@ type History []error
 func (e History) Error() string {
 	errLog := make([]string, len(e))
 	for i, l := range e {
-		errmsg := "<nil>"
+		var errmsg string = "<nil>"
 		if l != nil {
 			errmsg = l.Error()
 		}
 		errLog[i] = fmt.Sprintf("#%d: %s", i+1, errmsg)
 	}
 
-	return fmt.Sprintf("Saved errors:\n%s", strings.Join(errLog, "\n"))
+	return fmt.Sprintf("saved errors:\n%s", strings.Join(errLog, "\n"))
 }
 
 func appendErr(e error, err error) History {
@@ -241,27 +252,27 @@ func Save(errProperty errEnum) SaveFunc {
 	//	fallthrough
 	case AllStates:
 		return func(s State) error {
-			return appendErr(s.Hist, s.Err)
+			return appendErr(s.Hist, Error{s.Attempt, s.Err})
 		}
 	case LastState:
-		return func(e State) error {
-			return e.Err
+		return func(s State) error {
+			return Error{s.Attempt, s.Err}
 		}
 	case NoStates:
 		return noStatesFunc
 	case AllErrors:
-		return func(e State) error {
-			if e.Err != nil {
-				return appendErr(e.Hist, e.Err)
+		return func(s State) error {
+			if s.Err != nil {
+				return appendErr(s.Hist, Error{s.Attempt, s.Err})
 			}
-			return e.Hist
+			return s.Hist
 		}
 	case LastError:
-		return func(e State) error {
-			if e.Err != nil {
-				return e.Err
+		return func(s State) error {
+			if s.Err != nil {
+				return Error{s.Attempt, s.Err}
 			}
-			return e.Hist
+			return s.Hist
 		}
 	}
 	panic(fmt.Sprintf("unrecognized enum for error configuration: '%+v'", errProperty))

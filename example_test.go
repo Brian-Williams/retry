@@ -69,10 +69,10 @@ func ExampleDoWithHistory_waitFixed() {
 	// ran after ~0s
 	// ran after ~200ms
 	// ran after ~200ms
-	// Saved errors:
-	// #1: Always fails
-	// #2: Always fails
-	// #3: Always fails
+	// saved errors:
+	// #1: attempt 1: Always fails
+	// #2: attempt 2: Always fails
+	// #3: attempt 3: Always fails
 }
 
 func ExampleDo_maxAttempts() {
