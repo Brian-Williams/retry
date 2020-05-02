@@ -5,13 +5,12 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/pkg/errors"
 	"time"
 )
 
 func TestAppendErr(t *testing.T) {
 	var e error
-	e = appendErr(e, errors.New("error1"))
+	e = appendErr(e, fmt.Errorf("error1"))
 	if e.Error() != "saved errors:\n#1: error1" {
 		t.Log(e.Error())
 		t.Error("actual and expected err didn't match")
@@ -31,10 +30,10 @@ func TestSave(t *testing.T) {
 	})
 
 	absOutput := []error{
-		Error{1, errors.New("error 1; return 1")},
+		Error{1, fmt.Errorf("error 1; return 1")},
 		Error{2, nil},
-		Error{3, errors.New("error 2; return 3")},
-		Error{ 4, nil},
+		Error{3, fmt.Errorf("error 2; return 3")},
+		Error{4, nil},
 	}
 	var absOutputHist History = absOutput
 	fmt.Println(absOutputHist)
@@ -106,7 +105,7 @@ func TestErrors_Error(t *testing.T) {
 func TestConfig(t *testing.T) {
 	c := Config()
 	nilState := State{}
-	errState := State{Err: errors.New("dogs are pretty great")}
+	errState := State{Err: fmt.Errorf("dogs are pretty great")}
 	states := []State{nilState, errState}
 	for _, s := range states {
 		if c.stop(s) != false {

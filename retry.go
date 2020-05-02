@@ -1,10 +1,10 @@
 package retry
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
-	"errors"
 )
 
 // Func is a function that can be retried
@@ -178,8 +178,8 @@ func WaitFixed(delay time.Duration) WaitFunc {
 // Error options
 
 type Error struct {
-	Attempt  uint
-	Err      error
+	Attempt uint
+	Err     error
 }
 
 func (e Error) Unwrap() error { return e.Err }
@@ -339,7 +339,6 @@ func StopAnd(fs ...StopFunc) StopFunc {
 }
 
 // WRAPPING UTILITIES
-
 
 // UnwrappedError
 var NotWrappedError = errors.New("error missing Unwrap method")

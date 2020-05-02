@@ -12,7 +12,6 @@ import (
 
 	"bytes"
 	"github.com/Brian-Williams/retry"
-	"github.com/pkg/errors"
 	"os/exec"
 )
 
@@ -55,7 +54,7 @@ func ExampleDoWithHistory_waitFixed() {
 			elapsed := now.Sub(pit)
 			fmt.Printf("ran after ~%s\n", elapsed.Round(durationUnit))
 			pit = now
-			return errors.New("Always fails")
+			return fmt.Errorf("Always fails")
 		},
 		retry.StopOr(retry.StopMaxAttempts(3), retry.StopIfNoError()),
 		retry.WaitFixed(10*durationUnit),
@@ -167,7 +166,7 @@ func ExampleDo_cmdUntilFailure() {
 //
 // Without this StopFunc the error would've caused an additional retry, however since we didn't use
 // `retry.Save(AllStates)` and no History is being saved it exits
-func ExampleStopFunc_custom(){
+func ExampleStopFunc_custom() {
 	i := 0
 	err := retry.Do(
 		func() error {
