@@ -61,5 +61,5 @@ jobs:
         alert-comment-cc-users: '@Brian-Williams'
         fail-on-alert: true
     - name: Push benchmark result
-        run: git push ...
-        if: github.event_name != 'pull_request'
+      run: git push ...
+      if: github.event_name != 'pull_request'
