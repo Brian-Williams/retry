@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"context"
 )
 
 // Func is a function that can be retried
-type Func func() error
+type Func func(ctx context.Context) error
 
 // Do is a general retry function.
 //
@@ -17,34 +18,34 @@ type Func func() error
 // If combining multiple configurable options use one of the combination helpers like "StopOr".
 // If multiple configurations are passed in for the same configurable option the *last* configuration will be the one
 // that takes effect.
-func Do(f Func, opts ...Configurer) error {
+func Do(ctx context.Context, f Func, opts ...Configurer) error {
 	config := Config()
 
 	for _, opt := range opts {
 		opt.Configure(config)
 	}
 
-	_, err := doWithConfigurer(f, config)
+	_, err := doWithConfigurer(ctx, f, config)
 	return err
 }
 
-func DoWithHistory(f Func, opts ...Configurer) (history, err error) {
+func DoWithHistory(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
 	config := Config()
 
 	for _, opt := range opts {
 		opt.Configure(config)
 	}
 
-	return doWithConfigurer(f, config)
+	return doWithConfigurer(ctx, f, config)
 }
 
-func doWithConfigurer(f Func, config *config) (history error, err error) {
+func doWithConfigurer(ctx context.Context, f Func, config *config) (history error, err error) {
 	var attempt uint = 1
 	var errs error
 
 	for {
 		e := State{Attempt: attempt, Err: nil, Hist: errs}
-		e.Err = f()
+		e.Err = f(ctx)
 		e.Hist = config.save(e)
 		if !config.retry(e.Err) {
 			return e.Hist, e.Err
@@ -278,9 +279,9 @@ func Save(errProperty errEnum) SaveFunc {
 	panic(fmt.Sprintf("unrecognized enum for error configuration: '%+v'", errProperty))
 }
 
-// Config provides a config that retries on non-nil errors
+// Config provides a config for retry's Do functions
 //
-// The returned config has no stop condition, 0 wait time, and will not save any history.
+// The returned config retries on non-nil errors, has no stop condition, 0 wait time, and will not save any history.
 func Config() *config {
 	return &config{
 		retry: retryIfErrorFunc,
@@ -341,7 +342,7 @@ func StopAnd(fs ...StopFunc) StopFunc {
 // WRAPPING UTILITIES
 
 // UnwrappedError
-var NotWrappedError = errors.New("error missing Unwrap method")
+var NotWrappedError = errors.New("error doesn't have an 'Unwrap' method")
 
 // Unwrap is like the standard libraries Unwrap function except it returns a `NotWrappedError` in the case of being
 // handed an error without an Unwrap method instead of returning nil

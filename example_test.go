@@ -13,12 +13,14 @@ import (
 	"bytes"
 	"github.com/Brian-Williams/retry"
 	"os/exec"
+	"context"
 )
 
 // ExampleDo_Get adds retrying to the ExampleGet in net/http/example_test.go
 func ExampleDo_get() {
 	err := retry.Do(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			res, err := http.Get("http://www.google.com/robots.txt")
 			if err != nil {
 				return err
@@ -49,7 +51,8 @@ func ExampleDoWithHistory_waitFixed() {
 	fmt.Printf("The first execution will be immediate than it will pause 10 * %s inbetween executions\n", durationUnit)
 
 	h, _ := retry.DoWithHistory(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			now := time.Now()
 			elapsed := now.Sub(pit)
 			fmt.Printf("ran after ~%s\n", elapsed.Round(durationUnit))
@@ -77,7 +80,8 @@ func ExampleDoWithHistory_waitFixed() {
 func ExampleDo_maxAttempts() {
 	i := 1
 	err := retry.Do(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			fmt.Println(i)
 			i++
 			return fmt.Errorf("failed on attempt %d", i-1)
@@ -99,7 +103,8 @@ func ExampleDo_goRoutine() {
 	i := 1
 	var wg sync.WaitGroup
 	retry.Do(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			wg.Add(1)
 			go func(in int) {
 				time.Sleep(time.Millisecond * time.Duration(in))
@@ -121,7 +126,8 @@ func ExampleDo_cmd() {
 
 	i := 0
 	retry.Do(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			c := exec.Command(args[i])
 			var out bytes.Buffer
 			c.Stdout = &out
@@ -143,7 +149,8 @@ func ExampleDo_cmdUntilFailure() {
 
 	i := 0
 	retry.Do(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			c := exec.Command(args[i])
 			var out bytes.Buffer
 			c.Stdout = &out
@@ -169,7 +176,8 @@ func ExampleDo_cmdUntilFailure() {
 func ExampleStopFunc_custom() {
 	i := 0
 	err := retry.Do(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			i++
 			fmt.Println(i)
 			return fmt.Errorf("failed on attempt %d", i)

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"time"
+	"context"
 )
 
 func TestAppendErr(t *testing.T) {
@@ -61,7 +62,8 @@ func TestSave(t *testing.T) {
 			func(t *testing.T) {
 				i := 0
 				actual, _ := DoWithHistory(
-					func() error {
+					context.TODO(),
+					func(context.Context) error {
 						r := absOutput[i].(Error).Unwrap()
 						i++
 						return r
@@ -92,7 +94,8 @@ func TestSave(t *testing.T) {
 
 func TestErrors_Error(t *testing.T) {
 	err := Do(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			return nil
 		}, StopMaxAttempts(5),
 	)
@@ -132,7 +135,8 @@ func maxAttemptsStr(opts ...Configurer) string {
 	out := ""
 	opts = append(opts, Always())
 	Do(
-		func() error {
+		context.TODO(),
+		func(ctx context.Context) error {
 			out = fmt.Sprintf("%s%s", out, strconv.Itoa(i))
 			i++
 			return nil
@@ -192,7 +196,9 @@ func benchmarkDo(b *testing.B, attempts uint) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r = Do(func() error {
+		r = Do(
+			context.TODO(),
+			func(ctx context.Context) error {
 			return nil
 		}, opts)
 	}
@@ -206,7 +212,9 @@ func benchmarkDoWithConfigurer(b *testing.B, attempts uint) {
 	for i := 0; i < b.N; i++ {
 		config := Config()
 		opt.Configure(config)
-		doWithConfigurer(func() error {
+		doWithConfigurer(
+			context.TODO(),
+			func(ctx context.Context) error {
 			return nil
 		}, config)
 	}
