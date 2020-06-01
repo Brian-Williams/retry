@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	"time"
 	"context"
+	"time"
 )
 
 func TestAppendErr(t *testing.T) {
@@ -61,7 +61,7 @@ func TestSave(t *testing.T) {
 		t.Run(fmt.Sprintf("Save enum: %s", test.enum),
 			func(t *testing.T) {
 				i := 0
-				actual, _ := DoWithHistory(
+				actual, _ := Sequential(
 					context.TODO(),
 					func(context.Context) error {
 						r := absOutput[i].(Error).Unwrap()
@@ -93,7 +93,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestErrors_Error(t *testing.T) {
-	err := Do(
+	_, err := Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			return nil
@@ -134,7 +134,7 @@ func maxAttemptsStr(opts ...Configurer) string {
 	i := 1
 	out := ""
 	opts = append(opts, Always())
-	Do(
+	Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			out = fmt.Sprintf("%s%s", out, strconv.Itoa(i))
@@ -196,11 +196,11 @@ func benchmarkDo(b *testing.B, attempts uint) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r = Do(
+		_, r = Sequential(
 			context.TODO(),
 			func(ctx context.Context) error {
-			return nil
-		}, opts)
+				return nil
+			}, opts)
 	}
 	antiCompiler = r
 }
@@ -212,11 +212,11 @@ func benchmarkDoWithConfigurer(b *testing.B, attempts uint) {
 	for i := 0; i < b.N; i++ {
 		config := Config()
 		opt.Configure(config)
-		doWithConfigurer(
+		concurrentLoop(
 			context.TODO(),
 			func(ctx context.Context) error {
-			return nil
-		}, config)
+				return nil
+			}, config)
 	}
 }
 

@@ -11,14 +11,14 @@ import (
 	"bufio"
 
 	"bytes"
+	"context"
 	"github.com/Brian-Williams/retry"
 	"os/exec"
-	"context"
 )
 
 // ExampleDo_Get adds retrying to the ExampleGet in net/http/example_test.go
 func ExampleDo_get() {
-	err := retry.Do(
+	_, err := retry.Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			res, err := http.Get("http://www.google.com/robots.txt")
@@ -50,7 +50,7 @@ func ExampleDoWithHistory_waitFixed() {
 	pit := time.Now()
 	fmt.Printf("The first execution will be immediate than it will pause 10 * %s inbetween executions\n", durationUnit)
 
-	h, _ := retry.DoWithHistory(
+	h, _ := retry.Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			now := time.Now()
@@ -79,7 +79,7 @@ func ExampleDoWithHistory_waitFixed() {
 
 func ExampleDo_maxAttempts() {
 	i := 1
-	err := retry.Do(
+	_, err := retry.Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			fmt.Println(i)
@@ -102,7 +102,7 @@ func ExampleDo_maxAttempts() {
 func ExampleDo_goRoutine() {
 	i := 1
 	var wg sync.WaitGroup
-	retry.Do(
+	retry.Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			wg.Add(1)
@@ -125,7 +125,7 @@ func ExampleDo_cmd() {
 	args := []string{"false", "false", "true"}
 
 	i := 0
-	retry.Do(
+	retry.Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			c := exec.Command(args[i])
@@ -148,7 +148,7 @@ func ExampleDo_cmdUntilFailure() {
 	args := []string{"true", "true", "false"}
 
 	i := 0
-	retry.Do(
+	retry.Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			c := exec.Command(args[i])
@@ -175,7 +175,7 @@ func ExampleDo_cmdUntilFailure() {
 // `retry.Save(AllStates)` and no History is being saved it exits
 func ExampleStopFunc_custom() {
 	i := 0
-	err := retry.Do(
+	_, err := retry.Sequential(
 		context.TODO(),
 		func(ctx context.Context) error {
 			i++

@@ -1,51 +1,92 @@
 package retry
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
-	"context"
 )
 
 // Func is a function that can be retried
 type Func func(ctx context.Context) error
 
-// Do is a general retry function.
+// Concurrent is a general retry function.
 //
-// Do is the entry point for retrying. It will always run a function at least once.
+// Concurrent is the entry point for retrying. It will always run a function at least once.
 //
 // If combining multiple configurable options use one of the combination helpers like "StopOr".
 // If multiple configurations are passed in for the same configurable option the *last* configuration will be the one
 // that takes effect.
-func Do(ctx context.Context, f Func, opts ...Configurer) error {
+func Concurrent(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
 	config := Config()
 
 	for _, opt := range opts {
 		opt.Configure(config)
 	}
 
-	_, err := doWithConfigurer(ctx, f, config)
-	return err
+	return concurrentLoop(ctx, f, config)
 }
 
-func DoWithHistory(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
-	config := Config()
-
-	for _, opt := range opts {
-		opt.Configure(config)
-	}
-
-	return doWithConfigurer(ctx, f, config)
-}
-
-func doWithConfigurer(ctx context.Context, f Func, config *config) (history error, err error) {
+func concurrentLoop(ctx context.Context, f Func, config *config) (history error, err error) {
 	var attempt uint = 1
 	var errs error
 
 	for {
-		e := State{Attempt: attempt, Err: nil, Hist: errs}
+		e := newState(attempt, errs)
+
+		// e.Err = f(ctx)
+		c := make(chan error, 1)
+		go func() { c <- f(ctx) }()
+		select {
+		case <-ctx.Done():
+			e.Err = ctx.Err()
+			config.retry = Never()
+		case err := <-c:
+			e.Err = err
+		}
+
+		e.Hist = config.save(e)
+		if !config.retry(e.Err) {
+			return e.Hist, e.Err
+		}
+		if config.stop(e) {
+			return e.Hist, e.Err
+		}
+
+		// time.Sleep(config.wait(e))
+		sleep := make(chan bool, 1)
+		go func() {
+			// TODO: should the WaitFunc simply return a channel?
+			time.Sleep(config.wait(e))
+			sleep <- true
+		}()
+		select {
+		case <-ctx.Done():
+			// This is the only error that doesn't go into Hist
+			return e.Hist, ctx.Err()
+		case <-sleep:
+		}
+
+		errs = e.Hist
+		attempt++
+	}
+}
+
+func Sequential(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
+	config := Config()
+
+	for _, opt := range opts {
+		opt.Configure(config)
+	}
+
+	var attempt uint = 1
+	var errs error
+
+	for {
+		e := newState(attempt, errs)
 		e.Err = f(ctx)
+
 		e.Hist = config.save(e)
 		if !config.retry(e.Err) {
 			return e.Hist, e.Err
@@ -59,6 +100,10 @@ func doWithConfigurer(ctx context.Context, f Func, config *config) (history erro
 	}
 }
 
+func newState(attempt uint, hist error) State {
+	return State{Attempt: attempt, Err: nil, Hist: hist}
+}
+
 // CONFIGURATION
 
 type Configurer interface {
@@ -67,6 +112,9 @@ type Configurer interface {
 
 // RetryFunc is a simplified independent stop condition that only has access to the error
 // It is technically not required, but simplifies the API for the most common use case of attempt until no error/success
+//
+// The RetryFunc should not have required side effects or change state in any way as the retry functions may overwrite
+// it at any time
 type RetryFunc func(err error) bool
 
 // StopFunc is a function that stops on true and continues retrying on false
@@ -126,6 +174,12 @@ func IfNoError() RetryFunc {
 func Always() RetryFunc {
 	return func(error) bool {
 		return true
+	}
+}
+
+func Never() RetryFunc {
+	return func(error) bool {
+		return false
 	}
 }
 
@@ -245,7 +299,7 @@ func noStatesFunc(_ State) error {
 
 // Save decides what parts of the error history to save and return to the user.
 //
-// Save can be used with `DoWithHistory`.
+// Save can be used with `ConcurrentWithHistory`.
 // Save can also be used if any Configure function wants to inspect previous executions
 func Save(errProperty errEnum) SaveFunc {
 	switch errProperty {
@@ -279,7 +333,7 @@ func Save(errProperty errEnum) SaveFunc {
 	panic(fmt.Sprintf("unrecognized enum for error configuration: '%+v'", errProperty))
 }
 
-// Config provides a config for retry's Do functions
+// Config provides a config for retry's Concurrent functions
 //
 // The returned config retries on non-nil errors, has no stop condition, 0 wait time, and will not save any history.
 func Config() *config {
