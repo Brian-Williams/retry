@@ -55,17 +55,12 @@ func concurrentLoop(ctx context.Context, f Func, config *config) (history error,
 		}
 
 		// time.Sleep(config.wait(e))
-		sleep := make(chan bool, 1)
-		go func() {
-			// TODO: should the WaitFunc simply return a channel?
-			time.Sleep(config.wait(e))
-			sleep <- true
-		}()
 		select {
 		case <-ctx.Done():
 			// This is the only error that doesn't go into Hist
 			return e.Hist, ctx.Err()
-		case <-sleep:
+		// TODO: should the WaitFunc simply return a channel?
+		case <-time.After(config.wait(e)):
 		}
 
 		errs = e.Hist
