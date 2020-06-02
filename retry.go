@@ -60,6 +60,7 @@ func concurrentLoop(ctx context.Context, f Func, config *config) (history error,
 			// This is the only error that doesn't go into Hist
 			return e.Hist, ctx.Err()
 		// TODO: should the WaitFunc simply return a channel?
+		// If WaitFunc is still a Duration, should it short circuit based on ctx.Deadline?
 		case <-time.After(config.wait(e)):
 		}
 
