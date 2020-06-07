@@ -6,10 +6,45 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"sync"
 )
 
 // Func is a function that can be retried
 type Func func(ctx context.Context) error
+
+// Sequential is a general retry function.
+//
+// Sequential is the entry point for retrying. It will always run a function at least once.
+//
+// If combining multiple configurable options use one of the combination helpers like "StopOr".
+// If multiple configurations are passed in for the same configurable option the *last* configuration will be the one
+// that takes effect.
+func Sequential(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
+	config := Config()
+
+	for _, opt := range opts {
+		opt.Configure(config)
+	}
+
+	var attempt uint = 1
+	var errs error
+
+	for {
+		e := newState(attempt, errs)
+		e.Err = f(ctx)
+
+		e.Hist = config.save(e)
+		if !config.retry(e.Err) {
+			return e.Hist, e.Err
+		}
+		if config.stop(e) {
+			return e.Hist, e.Err
+		}
+		time.Sleep(config.wait(e))
+		errs = e.Hist
+		attempt++
+	}
+}
 
 // Concurrent is a general retry function.
 //
@@ -31,13 +66,18 @@ func Concurrent(ctx context.Context, f Func, opts ...Configurer) (history, err e
 func concurrentLoop(ctx context.Context, f Func, config *config) (history error, err error) {
 	var attempt uint = 1
 	var errs error
+	var wg sync.WaitGroup
 
 	for {
 		e := newState(attempt, errs)
 
 		// e.Err = f(ctx)
+		wg.Add(1)
 		c := make(chan error, 1)
-		go func() { c <- f(ctx) }()
+		go func() {
+			defer wg.Done()
+			c <- f(ctx)
+		}()
 		select {
 		case <-ctx.Done():
 			e.Err = ctx.Err()
@@ -64,33 +104,6 @@ func concurrentLoop(ctx context.Context, f Func, config *config) (history error,
 		case <-time.After(config.wait(e)):
 		}
 
-		errs = e.Hist
-		attempt++
-	}
-}
-
-func Sequential(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
-	config := Config()
-
-	for _, opt := range opts {
-		opt.Configure(config)
-	}
-
-	var attempt uint = 1
-	var errs error
-
-	for {
-		e := newState(attempt, errs)
-		e.Err = f(ctx)
-
-		e.Hist = config.save(e)
-		if !config.retry(e.Err) {
-			return e.Hist, e.Err
-		}
-		if config.stop(e) {
-			return e.Hist, e.Err
-		}
-		time.Sleep(config.wait(e))
 		errs = e.Hist
 		attempt++
 	}
@@ -299,8 +312,6 @@ func noStatesFunc(_ State) error {
 // Save can also be used if any Configure function wants to inspect previous executions
 func Save(errProperty errEnum) SaveFunc {
 	switch errProperty {
-	//default:
-	//	fallthrough
 	case AllStates:
 		return func(s State) error {
 			return appendErr(s.Hist, Error{s.Attempt, s.Err})
