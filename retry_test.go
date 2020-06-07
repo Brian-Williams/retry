@@ -111,10 +111,10 @@ func TestConfig(t *testing.T) {
 	errState := State{Err: fmt.Errorf("dogs are pretty great")}
 	states := []State{nilState, errState}
 	for _, s := range states {
-		if c.stop(s) != false {
+		if c.Stop(s) != false {
 			t.Errorf("received unexpected stop condition on config with err: %s", s.Err)
 		}
-		if c.wait(s) != 0 {
+		if c.Wait(s) != 0 {
 			t.Errorf("received non-zero wait time for config with err: %s", s.Err)
 		}
 	}
@@ -183,8 +183,8 @@ func TestWaitFixed(t *testing.T) {
 	c := &config{}
 	input := time.Minute
 	WaitFixed(input).Configure(c)
-	if c.wait(State{}) != time.Minute {
-		t.Errorf("wait expected '%s' actual: '%s'", time.Minute, c.wait(State{}))
+	if c.Wait(State{}) != time.Minute {
+		t.Errorf("wait expected '%s' actual: '%s'", time.Minute, c.Wait(State{}))
 	}
 }
 
@@ -212,7 +212,7 @@ func benchmarkDoWithConfigurer(b *testing.B, attempts uint) {
 	for i := 0; i < b.N; i++ {
 		config := Config()
 		opt.Configure(config)
-		concurrentLoop(
+		sequentialLoop(
 			context.TODO(),
 			func(ctx context.Context) error {
 				return nil

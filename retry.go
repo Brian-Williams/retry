@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"sync"
 )
 
 // Func is a function that can be retried
@@ -26,91 +25,28 @@ func Sequential(ctx context.Context, f Func, opts ...Configurer) (history, err e
 		opt.Configure(config)
 	}
 
+	return sequentialLoop(ctx, f, config)
+}
+
+func sequentialLoop(ctx context.Context, f Func, config *config) (history, err error) {
 	var attempt uint = 1
 	var errs error
 
 	for {
-		e := newState(attempt, errs)
+		e := State{Attempt: attempt, Err: nil, Hist: errs}
 		e.Err = f(ctx)
 
-		e.Hist = config.save(e)
-		if !config.retry(e.Err) {
+		e.Hist = config.Save(e)
+		if !config.Retry(e.Err) {
 			return e.Hist, e.Err
 		}
-		if config.stop(e) {
+		if config.Stop(e) {
 			return e.Hist, e.Err
 		}
-		time.Sleep(config.wait(e))
+		time.Sleep(config.Wait(e))
 		errs = e.Hist
 		attempt++
 	}
-}
-
-// Concurrent is a general retry function.
-//
-// Concurrent is the entry point for retrying. It will always run a function at least once.
-//
-// If combining multiple configurable options use one of the combination helpers like "StopOr".
-// If multiple configurations are passed in for the same configurable option the *last* configuration will be the one
-// that takes effect.
-func Concurrent(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
-	config := Config()
-
-	for _, opt := range opts {
-		opt.Configure(config)
-	}
-
-	return concurrentLoop(ctx, f, config)
-}
-
-func concurrentLoop(ctx context.Context, f Func, config *config) (history error, err error) {
-	var attempt uint = 1
-	var errs error
-	var wg sync.WaitGroup
-
-	for {
-		e := newState(attempt, errs)
-
-		// e.Err = f(ctx)
-		wg.Add(1)
-		c := make(chan error, 1)
-		go func() {
-			defer wg.Done()
-			c <- f(ctx)
-		}()
-		select {
-		case <-ctx.Done():
-			e.Err = ctx.Err()
-			config.retry = Never()
-		case err := <-c:
-			e.Err = err
-		}
-
-		e.Hist = config.save(e)
-		if !config.retry(e.Err) {
-			return e.Hist, e.Err
-		}
-		if config.stop(e) {
-			return e.Hist, e.Err
-		}
-
-		// time.Sleep(config.wait(e))
-		select {
-		case <-ctx.Done():
-			// This is the only error that doesn't go into Hist
-			return e.Hist, ctx.Err()
-		// TODO: should the WaitFunc simply return a channel?
-		// If WaitFunc is still a Duration, should it short circuit based on ctx.Deadline?
-		case <-time.After(config.wait(e)):
-		}
-
-		errs = e.Hist
-		attempt++
-	}
-}
-
-func newState(attempt uint, hist error) State {
-	return State{Attempt: attempt, Err: nil, Hist: hist}
 }
 
 // CONFIGURATION
@@ -140,22 +76,22 @@ type SaveFunc func(e State) error
 
 // Configure satisfies the Configurer interface
 func (f RetryFunc) Configure(config *config) {
-	config.retry = f
+	config.Retry = f
 }
 
 // Configure satisfies the Configurer interface
 func (f StopFunc) Configure(config *config) {
-	config.stop = f
+	config.Stop = f
 }
 
 // Configure satisfies the Configurer interface
 func (f WaitFunc) Configure(config *config) {
-	config.wait = f
+	config.Wait = f
 }
 
 // Configure satisfies the Configurer interface
 func (f SaveFunc) Configure(config *config) {
-	config.save = f
+	config.Save = f
 }
 
 // Retry options
@@ -345,24 +281,24 @@ func Save(errProperty errEnum) SaveFunc {
 // The returned config retries on non-nil errors, has no stop condition, 0 wait time, and will not save any history.
 func Config() *config {
 	return &config{
-		retry: retryIfErrorFunc,
-		stop: func(_ State) bool {
+		Retry: retryIfErrorFunc,
+		Stop: func(_ State) bool {
 			return false
 		},
-		wait: func(_ State) time.Duration {
+		Wait: func(_ State) time.Duration {
 			return 0
 		},
-		save: noStatesFunc,
+		Save: noStatesFunc,
 	}
 }
 
 // config configures which functions to use for retrying logic
 type config struct {
 	_     struct{}
-	retry RetryFunc
-	stop  StopFunc
-	wait  WaitFunc
-	save  SaveFunc
+	Retry RetryFunc
+	Stop  StopFunc
+	Wait  WaitFunc
+	Save  SaveFunc
 }
 
 // State provides the execution info for a single retry attempt
