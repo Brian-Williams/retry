@@ -11,14 +11,14 @@ import (
 // Func is a function that can be retried
 type Func func(ctx context.Context) error
 
-// Sequential is a general retry function.
+// Do is a general retry function.
 //
-// Sequential is the entry point for retrying. It will always run a function at least once.
+// Do is the entry point for retrying. It will always run a function at least once.
 //
 // If combining multiple configurable options use one of the combination helpers like "StopOr".
 // If multiple configurations are passed in for the same configurable option the *last* configuration will be the one
 // that takes effect.
-func Sequential(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
+func Do(ctx context.Context, f Func, opts ...Configurer) (history, err error) {
 	config := Config()
 
 	for _, opt := range opts {
@@ -43,7 +43,14 @@ func sequentialLoop(ctx context.Context, f Func, config *config) (history, err e
 		if config.Stop(e) {
 			return e.Hist, e.Err
 		}
-		time.Sleep(config.Wait(e))
+		select {
+		case <-ctx.Done():
+			// This is the only error that doesn't go into Hist
+			return e.Hist, ctx.Err()
+			// TODO: should the WaitFunc simply return a channel?
+			// If WaitFunc is still a Duration, should it short circuit based on ctx.Deadline?
+		case <-time.After(config.Wait(e)):
+		}
 		errs = e.Hist
 		attempt++
 	}
@@ -276,7 +283,7 @@ func Save(errProperty errEnum) SaveFunc {
 	panic(fmt.Sprintf("unrecognized enum for error configuration: '%+v'", errProperty))
 }
 
-// Config provides a config for retry's Concurrent functions
+// Config provides a config for retry's Do functions
 //
 // The returned config retries on non-nil errors, has no stop condition, 0 wait time, and will not save any history.
 func Config() *config {

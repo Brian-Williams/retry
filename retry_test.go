@@ -61,7 +61,7 @@ func TestSave(t *testing.T) {
 		t.Run(fmt.Sprintf("Save enum: %s", test.enum),
 			func(t *testing.T) {
 				i := 0
-				actual, _ := Sequential(
+				actual, _ := Do(
 					context.TODO(),
 					func(context.Context) error {
 						r := absOutput[i].(Error).Unwrap()
@@ -93,7 +93,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestErrors_Error(t *testing.T) {
-	_, err := Sequential(
+	_, err := Do(
 		context.TODO(),
 		func(ctx context.Context) error {
 			return nil
@@ -134,7 +134,7 @@ func maxAttemptsStr(opts ...Configurer) string {
 	i := 1
 	out := ""
 	opts = append(opts, Always())
-	Sequential(
+	Do(
 		context.TODO(),
 		func(ctx context.Context) error {
 			out = fmt.Sprintf("%s%s", out, strconv.Itoa(i))
@@ -196,7 +196,7 @@ func benchmarkDo(b *testing.B, attempts uint) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, r = Sequential(
+		_, r = Do(
 			context.TODO(),
 			func(ctx context.Context) error {
 				return nil
